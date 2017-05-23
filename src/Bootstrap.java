@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,6 +72,7 @@ public class Bootstrap {
 
 
     public static void main(String[] args) throws Exception {
+        DecimalFormat dfrm = new DecimalFormat("##0.00");
         Random rand = new Random();
         if(args.length<4){
             System.out.println("gold_file model1_output model2_output numOfThreads");
@@ -90,7 +92,7 @@ public class Bootstrap {
         double orig_f_2 = fScore(g_lab, p2_lab);
 
         double df = orig_f_1 - orig_f_2;
-        System.out.println("original difference " + df);
+        System.out.println("original difference " + dfrm.format(df));
         double two_delta = 2 * df;
 
         ExecutorService executor = Executors.newFixedThreadPool(numOfThreads);
@@ -99,14 +101,14 @@ public class Bootstrap {
         double s = 0;
         for (int i = 0; i < b; i++) {
             pool.submit(new SampleThread(g_lab,p1_lab, p2_lab,sample_size, rand));
-
-
         }
         for(int i=0;i<b;i++){
             double diff = pool.take().get();
             if (diff > two_delta) s += 1;
-            if (i % 1000 == 0)
-                System.out.print(i + "...");
+            if ((i+1) % 100000 == 0) {
+                double progress = 100.0 *(i+1)/b;
+                System.out.print(dfrm.format(progress) + "% ...");
+            }
         }
         System.out.print("\n");
 
