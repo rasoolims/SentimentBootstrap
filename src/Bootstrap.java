@@ -20,14 +20,14 @@ import java.util.concurrent.Executors;
 
 public class Bootstrap {
 
-    public static double fScore(ArrayList<String> g_lab, ArrayList<String> p_lab) {
-        HashMap<String, Integer> tp = new HashMap<String, Integer>();
-        HashMap<String, Integer> fp = new HashMap<String, Integer>();
-        HashMap<String, Integer> fn = new HashMap<String, Integer>();
-        HashSet<String> labels = new HashSet<String>();
+    public static double fScore(ArrayList<Integer> g_lab, ArrayList<Integer> p_lab) {
+        HashMap<Integer, Integer> tp = new HashMap<Integer, Integer>();
+        HashMap<Integer, Integer> fp = new HashMap<Integer, Integer>();
+        HashMap<Integer, Integer> fn = new HashMap<Integer, Integer>();
+        HashSet<Integer> labels = new HashSet<Integer>();
         for (int i = 0; i < g_lab.size(); i++) {
-            String p = p_lab.get(i);
-            String g = g_lab.get(i);
+            int p = p_lab.get(i);
+            int g = g_lab.get(i);
             labels.add(g);
             labels.add(p);
             if (!tp.containsKey(p)) {
@@ -41,7 +41,7 @@ public class Bootstrap {
                 fn.put(g, 0);
             }
 
-            if (p.equals(g)) {
+            if (p==g) {
                 tp.put(g, tp.get(g) + 1);
             } else {
                 fn.put(g, fn.get(g) + 1);
@@ -50,7 +50,7 @@ public class Bootstrap {
         }
 
         double mf = 0;
-        for (String lab : labels) {
+        for (int lab : labels) {
             double p = (tp.get(lab) + fp.get(lab)) > 0 ? 100.0 * tp.get(lab) / (tp.get(lab) + fp.get(lab)) : 0;
             double r = (tp.get(lab) + fn.get(lab)) > 0 ? 100.0 * tp.get(lab) / (tp.get(lab) + fn.get(lab)) : 0;
             double f = (p + r) > 0 ? (2. * p * r) / (p + r) : 0;
@@ -60,12 +60,12 @@ public class Bootstrap {
 
     }
 
-    public static ArrayList<String> ReadLabels(String filePath) throws Exception {
+    public static ArrayList<Integer> ReadLabels(String filePath,  HashMap<String, Integer> sentimentMap) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
-        ArrayList<String> labels = new ArrayList<String>();
+        ArrayList<Integer> labels = new ArrayList<Integer>();
         while ((line = reader.readLine()) != null) {
-            labels.add(line.trim().split("\t")[1]);
+            labels.add(sentimentMap.get(line.trim().split("\t")[1]));
         }
         return labels;
     }
@@ -78,10 +78,14 @@ public class Bootstrap {
             System.out.println("gold_file model1_output model2_output numOfThreads");
             System.exit(0);
         }
+        HashMap<String, Integer> sentimentMap = new HashMap<String, Integer>();
+        sentimentMap.put("neutral",0);
+        sentimentMap.put("negative",1);
+        sentimentMap.put("positive",2);
 
-        ArrayList<String> g_lab = ReadLabels(args[0]);
-        ArrayList<String> p1_lab = ReadLabels(args[1]);
-        ArrayList<String> p2_lab = ReadLabels(args[2]);
+        ArrayList<Integer> g_lab = ReadLabels(args[0],sentimentMap);
+        ArrayList<Integer> p1_lab = ReadLabels(args[1],sentimentMap);
+        ArrayList<Integer> p2_lab = ReadLabels(args[2],sentimentMap);
         int numOfThreads = Integer.parseInt(args[3]);
 
         int b = 1000000;
@@ -107,18 +111,22 @@ public class Bootstrap {
             if (diff > two_delta) s += 1;
             if ((i+1) % 100000 == 0) {
                 double progress = 100.0 *(i+1)/b;
-                System.out.print(dfrm.format(progress) + "% ...");
+                System.out.print(dfrm.format(progress) + "% ("+s+")...last diff: "+dfrm.format(diff) +" ");
             }
         }
         System.out.print("\n");
-
         System.out.println(s / b);
+        boolean isTerminated = executor.isTerminated();
+        while (!isTerminated) {
+            executor.shutdownNow();
+            isTerminated = executor.isTerminated();
+        }
     }
 
-    public static double getSampleDiff(Random rand, ArrayList<String> g_lab, ArrayList<String> p1_lab, ArrayList<String> p2_lab, int l, int sample_size) {
-        ArrayList<String> g_sample = new ArrayList<String>();
-        ArrayList<String> p1_sample = new ArrayList<String>();
-        ArrayList<String> p2_sample = new ArrayList<String>();
+    public static double getSampleDiff(Random rand, ArrayList<Integer> g_lab, ArrayList<Integer> p1_lab, ArrayList<Integer> p2_lab, int l, int sample_size) {
+        ArrayList<Integer> g_sample = new ArrayList<Integer>();
+        ArrayList<Integer> p1_sample = new ArrayList<Integer>();
+        ArrayList<Integer> p2_sample = new ArrayList<Integer>();
         for (int j = 0; j < sample_size; j++) {
             int r = rand.nextInt(l);
             g_sample.add(g_lab.get(r));

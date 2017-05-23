@@ -11,13 +11,13 @@ import java.util.concurrent.Callable;
  */
 
 public class SampleThread implements Callable<Double> {
-    public ArrayList<String> goldLabs;
-    public ArrayList<String> p1Labs;
-    public ArrayList<String> p2Labs;
+    public ArrayList<Integer> goldLabs;
+    public ArrayList<Integer> p1Labs;
+    public ArrayList<Integer> p2Labs;
     int sampleSize;
     Random rand;
 
-    public SampleThread(ArrayList<String> goldLabs, ArrayList<String> p1Labs, ArrayList<String> p2Labs, int sampleSize, Random rand) {
+    public SampleThread(ArrayList<Integer> goldLabs, ArrayList<Integer> p1Labs, ArrayList<Integer> p2Labs, int sampleSize, Random rand) {
         this.goldLabs = goldLabs;
         this.p1Labs = p1Labs;
         this.p2Labs = p2Labs;
