@@ -111,7 +111,7 @@ public class Bootstrap {
             if (diff > two_delta) s += 1;
             if ((i+1) % 100000 == 0) {
                 double progress = 100.0 *(i+1)/b;
-                System.out.print(dfrm.format(progress) + "% ("+s+")...last diff: "+dfrm.format(diff) +" ");
+                System.out.print(dfrm.format(progress) + "% ("+(int)s+")...");
             }
         }
         System.out.print("\n");
